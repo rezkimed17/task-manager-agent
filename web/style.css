@@ -1,0 +1,8 @@
+body { font-family: system-ui, Arial, sans-serif; background: #0b0e11; color: #e6edf3; }
+.container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+.panel { background: #11161c; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+input { padding: 0.6rem; border-radius: 6px; border: 1px solid #2b2f36; background: #0b0e11; color: #e6edf3; }
+button { padding: 0.6rem 0.9rem; border: 0; border-radius: 6px; background: #2b6cb0; color: #fff; cursor: pointer; }
+ul { list-style: none; padding: 0; }
+li { margin: 0.25rem 0; }
+
