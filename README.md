@@ -14,19 +14,6 @@ tests/               # Parser, recurrence, planner, e2e
 .github/workflows/   # CI pipeline
 ```
 
-## Build Order
-
-1. Repo layout and env files
-2. Database models and migrations
-3. FastAPI skeleton and health routes
-4. Single-user auth and settings
-5. Task CRUD and search
-6. Reminder scheduler, in-process
-7. MCP tools for task operations
-8. LangGraph graph and nodes
-9. n8n email workflow and webhook
-10. UI, tests, CI, README
-
 ## Quick Start
 
 1. Create env
@@ -113,16 +100,4 @@ Exposed under `/mcp/*` for: `create_task`, `update_task/{id}`, `list_tasks`, `se
 - 401 errors: call `/auth/login` and pass `Authorization: Bearer <token>`.
 - Date parsing: uses `dateparser`; include times like `tomorrow at 9`.
 - FTS search: use `/mcp/search_tasks?q=keyword`.
-
-## Copy-Paste: Local Run
-
-```
-cp .env.example .env
-python -m venv .venv && source .venv/bin/activate
-pip install -e .[dev]
-mkdir -p data
-alembic upgrade head
-python scripts/seed.py
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
 
