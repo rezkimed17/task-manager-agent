@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import contextmanager
 from typing import AsyncIterator, Iterator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -20,20 +20,22 @@ if settings.sync_database_url:
     from sqlalchemy import create_engine
 
     sync_engine = create_engine(settings.sync_database_url, future=True)
-    SyncSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=sync_engine)
+    SyncSessionLocal = sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        expire_on_commit=False,
+        bind=sync_engine,
+    )
 
 
-@asynccontextmanager
 async def get_async_session() -> AsyncIterator[AsyncSession]:
-    session: AsyncSession = async_session_factory()
-    try:
-        yield session
-        await session.commit()
-    except Exception:
-        await session.rollback()
-        raise
-    finally:
-        await session.close()
+    async with async_session_factory() as session:  # type: AsyncSession
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
 
 
 @contextmanager
@@ -54,4 +56,3 @@ def get_sync_session() -> Iterator[Session]:
 async def run_in_thread(func, *args, **kwargs):
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, lambda: func(*args, **kwargs))
-

@@ -13,19 +13,36 @@ class AgentState(dict):
     pass
 
 
-async def intent_classifier(state: AgentState) -> str:
-    text = state["input"]
-    prompt = [
-        {"role": "system", "content": "Classify intent: task_create, task_query, plan, schedule, other."},
-        {"role": "user", "content": text},
-    ]
-    out = chat(prompt).strip().lower()
-    for k in ["task_create", "task_query", "plan", "schedule"]:
-        if k in out:
-            state["intent"] = k
-            return k
-    state["intent"] = "task_create"
-    return "task_create"
+async def intent_classifier(state: AgentState) -> AgentState:
+    text = (state.get("input") or "").lower()
+    # quick heuristic first
+    intent = None
+    if any(w in text for w in ["plan my", "plan", "week plan", "day plan"]):
+        intent = "plan"
+    elif any(w in text for w in ["show", "list", "overdue", "today", "upcoming", "by project", "by tag"]):
+        intent = "task_query"
+    elif any(w in text for w in ["schedule", "remind", "reminder"]):
+        intent = "task_create"
+    else:
+        intent = "task_create"
+
+    # Optionally refine with LLM if available
+    try:
+        prompt = [
+            {"role": "system", "content": "Classify intent: task_create, task_query, plan, schedule, other. Respond with a single label."},
+            {"role": "user", "content": text},
+        ]
+        out = chat(prompt).strip().lower()
+        for k in ["task_create", "task_query", "plan", "schedule"]:
+            if k in out:
+                intent = k
+                break
+    except Exception:
+        # fall back to heuristic silently
+        pass
+
+    state["intent"] = intent
+    return state
 
 
 async def parser_node(state: AgentState) -> AgentState:
@@ -35,7 +52,10 @@ async def parser_node(state: AgentState) -> AgentState:
 
 async def task_crud_node(state: AgentState) -> AgentState:
     s = get_settings()
-    token = state["token"]
+    token = state.get("token")
+    if not token:
+        state["output"] = "Auth token missing. Please login again."
+        return state
     async with httpx.AsyncClient() as client:
         r = await client.post(
             f"http://{s.app_host}:{s.app_port}/mcp/nl_to_task",
@@ -116,4 +136,3 @@ def build_graph():
     g.add_edge("guardrail", "final")
     g.add_edge("final", END)
     return g.compile()
-

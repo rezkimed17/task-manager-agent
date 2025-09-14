@@ -20,7 +20,7 @@ tests/               # Parser, recurrence, planner, e2e
 ```
 cp .env.example .env
 python -m venv .venv && source .venv/bin/activate
-pip install -e .[dev]
+pip install -e ".[dev]"
 ```
 
 2. Init DB
@@ -100,4 +100,3 @@ Exposed under `/mcp/*` for: `create_task`, `update_task/{id}`, `list_tasks`, `se
 - 401 errors: call `/auth/login` and pass `Authorization: Bearer <token>`.
 - Date parsing: uses `dateparser`; include times like `tomorrow at 9`.
 - FTS search: use `/mcp/search_tasks?q=keyword`.
-

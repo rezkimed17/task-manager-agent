@@ -7,7 +7,7 @@ from typing import Any
 import httpx
 
 from app.config import get_settings
-from .graph import build_graph
+from .graph import build_graph, AgentState
 
 
 async def run_agent_loop(token: str) -> None:
@@ -22,9 +22,12 @@ async def run_agent_loop(token: str) -> None:
             continue
         if text.lower() in {"exit", "quit"}:
             break
-        state = {"input": text, "token": token}
+        state = AgentState({"input": text, "token": token})
         out = await app.ainvoke(state)  # type: ignore[attr-defined]
-        print(out.get("output"))
+        if not isinstance(out, dict):
+            print("No output from agent. Ensure API is running and token is valid.")
+            continue
+        print(out.get("output") or "Done.")
 
 
 async def login_and_get_token(email: str, password: str) -> str:
@@ -47,4 +50,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
